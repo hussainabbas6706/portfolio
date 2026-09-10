@@ -1,53 +1,60 @@
-import Image from "next/image";
+"use client";
+
+import React, { useEffect } from "react";
+import dynamic from "next/dynamic";
+import Lenis from "lenis";
+import Navbar from "@/components/Navbar";
+import HeroContent from "@/components/HeroContent";
+import Footer from "@/components/Footer";
+
+// Dynamically import Three.js HeroCanvas to ensure clean client-side rendering
+const HeroCanvas = dynamic(() => import("@/components/canvas/HeroCanvas"), {
+  ssr: false,
+});
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start gap-12">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        
-        <div className="flex flex-col items-center gap-4 text-center sm:items-start sm:text-left">
-          <h1 className="text-4xl font-bold tracking-tight text-black dark:text-zinc-50 sm:text-5xl">
-            Syed Muhammad Hussain Abbas
-          </h1>
-          <p className="max-w-md text-lg text-zinc-600 dark:text-zinc-400">
-            It's just the start of creating my portfolio.
-          </p>
-        </div>
+  useEffect(() => {
+    // Initialize smooth inertia scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
 
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          {/* Disabled Deploy Button */}
-          <button
-            disabled
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-zinc-300 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-500 cursor-not-allowed opacity-60 px-5 md:w-[158px]"
-          >
-            <Image
-              className="dark:invert opacity-50 h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </button>
-          
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    const animId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      lenis.destroy();
+    };
+  }, []);
+
+  return (
+    <main className="relative min-h-screen w-full bg-[#050811] overflow-hidden flex flex-col justify-between">
+      {/* Background 2D Coordinate Grid Layer */}
+      <div className="absolute inset-0 bg-coordinate-grid opacity-70 pointer-events-none z-0" />
+
+      {/* Cosmic Radial Vignette Depth Layer */}
+      <div className="absolute inset-0 cosmic-vignette pointer-events-none z-0" />
+
+      {/* Interactive 3D WebGL Canvas Layer */}
+      <HeroCanvas />
+
+      {/* Top Navigation */}
+      <Navbar />
+
+      {/* Hero Central Section */}
+      <section className="relative z-10 flex-1 flex items-center px-6 sm:px-12 md:px-16 lg:px-20 py-24 sm:py-28 max-w-7xl w-full mx-auto">
+        <HeroContent />
+      </section>
+
+      {/* Bottom Footer & Social Connections */}
+      <Footer />
+    </main>
   );
 }
