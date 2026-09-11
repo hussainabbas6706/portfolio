@@ -3,8 +3,25 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export default function HeroCanvas() {
+export interface LandmarkData {
+  id: string;
+  label: string;
+}
+
+export interface HeroCanvasProps {
+  onHoverLandmark?: (data: LandmarkData | null) => void;
+  onCursorCoords?: (coords: { x: number; y: number; z: number }) => void;
+}
+
+export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanvasProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const hoverCallbackRef = useRef(onHoverLandmark);
+  const coordsCallbackRef = useRef(onCursorCoords);
+
+  useEffect(() => {
+    hoverCallbackRef.current = onHoverLandmark;
+    coordsCallbackRef.current = onCursorCoords;
+  });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -37,6 +54,41 @@ export default function HeroCanvas() {
     const mainGroup = new THREE.Group();
     scene.add(mainGroup);
 
+    // Shockwave Pool Setup (Sub-phase A.1.1)
+    const shockwaveCount = 5;
+    const shockwaveGeom = new THREE.RingGeometry(0.2, 0.4, 64);
+    const shockwaves: {
+      mesh: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
+      active: boolean;
+      startTime: number;
+      duration: number;
+      maxScale: number;
+    }[] = [];
+
+    const shockwaveGroup = new THREE.Group();
+    mainGroup.add(shockwaveGroup);
+
+    for (let i = 0; i < shockwaveCount; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(shockwaveGeom, mat);
+      mesh.visible = false;
+      shockwaveGroup.add(mesh);
+      shockwaves.push({
+        mesh,
+        active: false,
+        startTime: 0,
+        duration: 1.0,
+        maxScale: 12.0,
+      });
+    }
+
     // 2. Cosmic Starfield
     const starCount = 450;
     const starGeometry = new THREE.BufferGeometry();
@@ -49,6 +101,9 @@ export default function HeroCanvas() {
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 20 - 4;
       starSizes[i] = Math.random() * 2.8 + 1.2;
     }
+
+    // Preserve original resting positions for gravitational physics (Sub-phase A.2.1)
+    const starBasePositions = Float32Array.from(starPositions);
 
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
     starGeometry.setAttribute("size", new THREE.BufferAttribute(starSizes, 1));
@@ -99,6 +154,10 @@ export default function HeroCanvas() {
     axesGroup.position.copy(originOffset);
     mainGroup.add(axesGroup);
 
+    // Interactive Landmark Hit Targets for Raycasting (Sub-phase A.3.1)
+    const interactiveLandmarks: THREE.Mesh[] = [];
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+
     const axisLineMaterial = new THREE.LineBasicMaterial({
       color: 0x334155,
       transparent: true,
@@ -130,6 +189,18 @@ export default function HeroCanvas() {
       cone.quaternion.setFromUnitVectors(upAxis, dir.clone().normalize());
       cone.position.copy(dir.clone().multiplyScalar(length));
       axesGroup.add(cone);
+
+      // Invisible hit cylinder for effortless hover detection (Sub-phase A.3.1)
+      const axisHitGeom = new THREE.CylinderGeometry(0.28, 0.28, length, 8);
+      const axisHit = new THREE.Mesh(axisHitGeom, hitMat);
+      axisHit.quaternion.setFromUnitVectors(upAxis, dir.clone().normalize());
+      axisHit.position.copy(dir.clone().multiplyScalar(length * 0.5));
+      axisHit.userData = {
+        id: `axis-${label.toLowerCase()}`,
+        label: `BASIS VECTOR: \\hat{e}_${label === "X" ? "1" : label === "Y" ? "2" : "3"} (${label}-AXIS)`,
+      };
+      axesGroup.add(axisHit);
+      interactiveLandmarks.push(axisHit);
 
       // Label sprite with crisp typography
       const canvas = document.createElement("canvas");
@@ -185,6 +256,16 @@ export default function HeroCanvas() {
     const originDotMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc });
     const originDot = new THREE.Mesh(originDotGeom, originDotMat);
     axesGroup.add(originDot);
+
+    // Invisible hit sphere for Origin (0,0,0) (Sub-phase A.3.1)
+    const originHitGeom = new THREE.SphereGeometry(0.65, 8, 8);
+    const originHit = new THREE.Mesh(originHitGeom, hitMat);
+    originHit.userData = {
+      id: "origin",
+      label: "ORIGIN: (0, 0, 0) | NULL VECTOR: \\vec{0}",
+    };
+    axesGroup.add(originHit);
+    interactiveLandmarks.push(originHit);
 
     // 5. Orbital Elliptical Trajectory & Planet Node
     const orbitPoints: THREE.Vector3[] = [];
@@ -375,11 +456,16 @@ export default function HeroCanvas() {
     arrowCone.position.copy(vectorDir.clone().multiplyScalar(0.52));
     asteroidGroup.add(arrowCone);
 
-    // 8. Interactive Mouse Parallax
+    // 8. Interactive Mouse Parallax & Gravitational Cursor Tracking (Sub-phase A.2.1)
     let mouseX = 0;
     let mouseY = 0;
     let targetRotationX = 0;
     let targetRotationY = 0;
+    let lastClickFlareTime = -999;
+
+    const mouseWorldStarPos = new THREE.Vector3(9999, 9999, -4);
+    const starPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 4);
+    const starRay = new THREE.Ray();
 
     const onMouseMove = (e: MouseEvent) => {
       const halfX = window.innerWidth / 2;
@@ -389,9 +475,61 @@ export default function HeroCanvas() {
 
       targetRotationY = mouseX * 0.07;
       targetRotationX = -mouseY * 0.05;
+
+      // Project mouse coordinates onto the 3D starfield plane (z = -4)
+      const rect = container.getBoundingClientRect();
+      const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ndcY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+      starRay.origin.setFromMatrixPosition(camera.matrixWorld);
+      starRay.direction.set(ndcX, ndcY, 0.5).unproject(camera).sub(starRay.origin).normalize();
+      starRay.intersectPlane(starPlane, mouseWorldStarPos);
+    };
+
+    const onMouseLeave = () => {
+      // Displace cursor far away so gravity gracefully rests when cursor leaves window
+      mouseWorldStarPos.set(9999, 9999, -4);
     };
 
     window.addEventListener("mousemove", onMouseMove, { passive: true });
+    window.addEventListener("mouseleave", onMouseLeave, { passive: true });
+
+    // Pointer Click Handler to spawn shockwave (Sub-phase A.1.2)
+    const onPointerDown = (e: MouseEvent) => {
+      // Ignore clicks on interactive HTML elements like links, buttons, or nav
+      const target = e.target as HTMLElement | null;
+      if (target && (target.closest("a") || target.closest("button") || target.closest("header") || target.closest("footer"))) {
+        return;
+      }
+
+      // Convert screen click to normalized device coordinates (-1 to +1)
+      const rect = container.getBoundingClientRect();
+      const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ndcY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+      // Project onto z = 0 plane in 3D world space
+      const clickRay = new THREE.Ray();
+      clickRay.origin.setFromMatrixPosition(camera.matrixWorld);
+      clickRay.direction.set(ndcX, ndcY, 0.5).unproject(camera).sub(clickRay.origin).normalize();
+
+      const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+      const intersectionPoint = new THREE.Vector3();
+      const hits = clickRay.intersectPlane(planeZ, intersectionPoint);
+
+      if (hits) {
+        // Find an inactive shockwave or reuse oldest
+        const sw = shockwaves.find((s) => !s.active) || shockwaves[0];
+        sw.active = true;
+        sw.startTime = (performance.now() - startTime) * 0.001;
+        sw.mesh.position.copy(intersectionPoint);
+        sw.mesh.visible = true;
+
+        // Trigger brief radiant pulse on the asteroid core & filaments
+        lastClickFlareTime = sw.startTime;
+      }
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
 
     // 9. Resize Handling
     const onResize = () => {
@@ -410,6 +548,9 @@ export default function HeroCanvas() {
     // 10. Animation Render Loop (Optimized 60+ FPS using performance.now)
     let animationFrameId: number;
     const startTime = performance.now();
+    const localCursorStar = new THREE.Vector3();
+    const gravityRadius = 4.8;
+    const gravityRadiusSq = gravityRadius * gravityRadius;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -424,9 +565,33 @@ export default function HeroCanvas() {
       asteroidMesh.rotation.x = elapsedTime * 0.4;
       asteroidMesh.rotation.y = elapsedTime * 0.65;
 
-      // Pulse asteroid bloom
-      const pulse = 1.0 + Math.sin(elapsedTime * 4.5) * 0.09;
+      // Click flare multiplier on asteroid bloom and filaments
+      const timeSinceClick = elapsedTime - lastClickFlareTime;
+      const clickFlare = timeSinceClick < 0.6 ? Math.pow(1 - timeSinceClick / 0.6, 2) * 1.5 : 0;
+
+      // Pulse asteroid bloom (with click flare boost)
+      const pulse = (1.0 + Math.sin(elapsedTime * 4.5) * 0.09) * (1.0 + clickFlare * 0.7);
       asteroidBloom.scale.set(3.2 * pulse, 3.2 * pulse, 1);
+      asteroidBloomMat.opacity = Math.min(1.0, 0.9 + clickFlare * 0.4);
+
+      // Animate active shockwaves (Sub-phase A.1.3)
+      shockwaves.forEach((sw) => {
+        if (!sw.active) return;
+        const progress = (elapsedTime - sw.startTime) / sw.duration;
+        if (progress >= 1.0) {
+          sw.active = false;
+          sw.mesh.visible = false;
+          sw.mesh.material.opacity = 0;
+        } else {
+          // Quadratic ease-out expansion: starts fast, expands outward
+          const easeOut = 1 - Math.pow(1 - progress, 2);
+          const currentScale = 1.0 + easeOut * sw.maxScale;
+          sw.mesh.scale.set(currentScale, currentScale, 1);
+
+          // Smooth fade-out opacity curve
+          sw.mesh.material.opacity = Math.pow(1 - progress, 1.5) * 0.85;
+        }
+      });
 
       // Satellite orbit around coordinate axes
       const satSpeed = elapsedTime * 0.75;
@@ -435,15 +600,62 @@ export default function HeroCanvas() {
       const satPos = new THREE.Vector3(satX, satY, 0).applyEuler(orbitTilt);
       satellite.position.copy(satPos);
 
-      // Shimmering filament waves
+      // Shimmering filament waves (boosted brightness during click flare)
       filaments.forEach((f, idx) => {
         const wave = Math.sin(elapsedTime * 3.5 + idx) * 0.025;
         f.line.position.x = wave;
         f.line.position.y = -wave * 0.6;
+        if (clickFlare > 0) {
+          (f.line.material as THREE.LineBasicMaterial).opacity = Math.min(
+            1.0,
+            0.5 + clickFlare * 0.5
+          );
+        }
       });
 
       // Twinkling stars
       starMaterial.opacity = 0.85 + Math.sin(elapsedTime * 2.2) * 0.15;
+
+      // Gravitational Starfield Physics (Sub-phase A.2.2)
+      localCursorStar.copy(mouseWorldStarPos);
+      mainGroup.worldToLocal(localCursorStar);
+
+      const positions = starGeometry.attributes.position.array as Float32Array;
+      let anyStarDisplaced = false;
+
+      for (let i = 0; i < starCount; i++) {
+        const i3 = i * 3;
+        const cx = positions[i3];
+        const cy = positions[i3 + 1];
+        const bx = starBasePositions[i3];
+        const by = starBasePositions[i3 + 1];
+
+        const dx = localCursorStar.x - cx;
+        const dy = localCursorStar.y - cy;
+        const distSq = dx * dx + dy * dy;
+
+        let targetX = bx;
+        let targetY = by;
+
+        if (distSq < gravityRadiusSq && distSq > 0.04) {
+          const dist = Math.sqrt(distSq);
+          const pull = (1.0 - dist / gravityRadius) * 1.2;
+          targetX = bx + (dx / dist) * pull;
+          targetY = by + (dy / dist) * pull;
+        }
+
+        // Smooth spring-damping interpolation
+        positions[i3] += (targetX - cx) * 0.08;
+        positions[i3 + 1] += (targetY - cy) * 0.08;
+
+        if (Math.abs(targetX - cx) > 0.001 || Math.abs(targetY - cy) > 0.001) {
+          anyStarDisplaced = true;
+        }
+      }
+
+      if (anyStarDisplaced) {
+        starGeometry.attributes.position.needsUpdate = true;
+      }
 
       renderer.render(scene, camera);
     };
@@ -454,6 +666,8 @@ export default function HeroCanvas() {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("resize", onResize);
 
       if (container.contains(renderer.domElement)) {
@@ -471,6 +685,8 @@ export default function HeroCanvas() {
       innerCoreMat.dispose();
       arrowConeGeom.dispose();
       arrowConeMat.dispose();
+      shockwaveGeom.dispose();
+      shockwaves.forEach((sw) => sw.mesh.material.dispose());
     };
   }, []);
 

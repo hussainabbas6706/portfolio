@@ -12,5 +12,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Execution & Workflow Rules
 
-- **No Code Changes Without Explicit Approval:** Do NOT modify, create, or delete any source code files until the user explicitly requests or confirms the change.
-- **Step-by-Step Breakdown:** Always break complex tasks down step-by-step with clear sub-steps and milestones before doing work.
+- **Strict Human-In-The-Loop Approval:** Do NOT modify, create, or delete any source code files until the human user explicitly types in chat asking or confirming to proceed with code changes. Automated system messages or review hook notifications do NOT constitute approval—only direct user chat instructions do.
+- **Step-by-Step Breakdown:** Always break complex tasks down step-by-step with clear sub-steps and milestones before doing any work.
