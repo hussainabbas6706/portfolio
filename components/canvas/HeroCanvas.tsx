@@ -456,16 +456,29 @@ export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanv
     arrowCone.position.copy(vectorDir.clone().multiplyScalar(0.52));
     asteroidGroup.add(arrowCone);
 
-    // 8. Interactive Mouse Parallax & Gravitational Cursor Tracking (Sub-phase A.2.1)
+    // Invisible hit sphere for Asteroid Core (Sub-phase A.3.1)
+    const asteroidHitGeom = new THREE.SphereGeometry(1.1, 8, 8);
+    const asteroidHit = new THREE.Mesh(asteroidHitGeom, hitMat);
+    asteroidHit.userData = {
+      id: "asteroid",
+      label: "VECTOR CORE: \\vec{v} = [-0.72, -0.62, 0.30]ᵀ | ||\\vec{v}|| = 1.00",
+    };
+    asteroidGroup.add(asteroidHit);
+    interactiveLandmarks.push(asteroidHit);
+
+    // 8. Interactive Mouse Parallax, Raycasting & Cursor Tracking (Sub-phase A.3.1)
     let mouseX = 0;
     let mouseY = 0;
     let targetRotationX = 0;
     let targetRotationY = 0;
     let lastClickFlareTime = -999;
+    let currentHoveredId: string | null = null;
 
     const mouseWorldStarPos = new THREE.Vector3(9999, 9999, -4);
     const starPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 4);
     const starRay = new THREE.Ray();
+    const mouseRaycaster = new THREE.Raycaster();
+    const mouseNDC = new THREE.Vector2(-999, -999);
 
     const onMouseMove = (e: MouseEvent) => {
       const halfX = window.innerWidth / 2;
@@ -481,6 +494,8 @@ export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanv
       const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ndcY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
 
+      mouseNDC.set(ndcX, ndcY);
+
       starRay.origin.setFromMatrixPosition(camera.matrixWorld);
       starRay.direction.set(ndcX, ndcY, 0.5).unproject(camera).sub(starRay.origin).normalize();
       starRay.intersectPlane(starPlane, mouseWorldStarPos);
@@ -489,6 +504,7 @@ export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanv
     const onMouseLeave = () => {
       // Displace cursor far away so gravity gracefully rests when cursor leaves window
       mouseWorldStarPos.set(9999, 9999, -4);
+      mouseNDC.set(-999, -999);
     };
 
     window.addEventListener("mousemove", onMouseMove, { passive: true });
@@ -657,6 +673,38 @@ export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanv
         starGeometry.attributes.position.needsUpdate = true;
       }
 
+      // Raycasting Landmark Hover Detection (Sub-phase A.3.1)
+      if (mouseNDC.x !== -999) {
+        mouseRaycaster.setFromCamera(mouseNDC, camera);
+        const intersects = mouseRaycaster.intersectObjects(interactiveLandmarks);
+
+        if (intersects.length > 0) {
+          const hitData = intersects[0].object.userData as LandmarkData;
+          if (currentHoveredId !== hitData.id) {
+            currentHoveredId = hitData.id;
+            hoverCallbackRef.current?.(hitData);
+          }
+          if (container) container.style.cursor = "pointer";
+        } else {
+          if (currentHoveredId !== null) {
+            currentHoveredId = null;
+            hoverCallbackRef.current?.(null);
+          }
+          if (container) container.style.cursor = "default";
+        }
+
+        // Live coordinate projection callback
+        coordsCallbackRef.current?.({
+          x: Number(mouseWorldStarPos.x.toFixed(2)),
+          y: Number(mouseWorldStarPos.y.toFixed(2)),
+          z: Number(mouseWorldStarPos.z.toFixed(2)),
+        });
+      } else if (currentHoveredId !== null) {
+        currentHoveredId = null;
+        hoverCallbackRef.current?.(null);
+        if (container) container.style.cursor = "default";
+      }
+
       renderer.render(scene, camera);
     };
 
@@ -687,6 +735,9 @@ export default function HeroCanvas({ onHoverLandmark, onCursorCoords }: HeroCanv
       arrowConeMat.dispose();
       shockwaveGeom.dispose();
       shockwaves.forEach((sw) => sw.mesh.material.dispose());
+      originHitGeom.dispose();
+      asteroidHitGeom.dispose();
+      hitMat.dispose();
     };
   }, []);
 
