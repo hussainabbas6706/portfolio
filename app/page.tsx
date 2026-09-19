@@ -1,19 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import Lenis from "lenis";
 import Navbar from "@/components/Navbar";
-import HeroContent from "@/components/HeroContent";
+import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import InspectionTooltip from "@/components/InspectionTooltip";
 import TelemetryHUD from "@/components/TelemetryHUD";
 import type { LandmarkData } from "@/components/canvas/HeroCanvas";
-
-// Dynamically import Three.js HeroCanvas to ensure clean client-side rendering
-const HeroCanvas = dynamic(() => import("@/components/canvas/HeroCanvas"), {
-  ssr: false,
-});
 
 export default function Home() {
   const [activeLandmark, setActiveLandmark] = useState<LandmarkData | null>(null);
@@ -56,25 +50,20 @@ export default function Home() {
       {/* Cosmic Radial Vignette Depth Layer */}
       <div className="absolute inset-0 cosmic-vignette pointer-events-none z-0" />
 
-      {/* Interactive 3D WebGL Canvas Layer */}
-      <HeroCanvas
-        onHoverLandmark={setActiveLandmark}
-        onCursorCoords={setCursorCoords}
-      />
-
-      {/* Floating Holographic Inspection Tooltip (Sub-phase A.3.2) */}
+      {/* Floating Holographic Inspection Tooltip */}
       <InspectionTooltip activeLandmark={activeLandmark} mousePos={mousePos} />
 
-      {/* Mathematical Telemetry HUD (Sub-phase A.3.3) */}
+      {/* Mathematical Telemetry HUD */}
       <TelemetryHUD cursorCoords={cursorCoords} />
 
       {/* Top Navigation */}
-      <Navbar />
+      <Navbar activeSection="hero" />
 
-      {/* Hero Central Section */}
-      <section className="relative z-10 flex-1 flex items-center px-6 sm:px-12 md:px-16 lg:px-20 py-24 sm:py-28 max-w-7xl w-full mx-auto">
-        <HeroContent />
-      </section>
+      {/* Hero Section with Framed ℝ³ COORDINATE SPACE Viewport */}
+      <HeroSection
+        onHoverLandmark={setActiveLandmark}
+        onCursorCoords={setCursorCoords}
+      />
 
       {/* Bottom Footer & Social Connections */}
       <Footer />
