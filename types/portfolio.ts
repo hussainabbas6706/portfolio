@@ -9,9 +9,10 @@ export interface ProjectSlot {
   title: string;
   description: string;
   tags: string[];
-  status: "in-progress" | "upcoming" | "template";
+  status: "live" | "completed" | "in-progress" | "upcoming" | "template";
   githubUrl?: string;
   liveUrl?: string;
+  demoUrl?: string;
 }
 
 export interface ContactFormData {

@@ -60,23 +60,23 @@ body {
   background: #3b5284;
 }
 
-/* Headline glow effect matching the mockup */
+/* Headline glow effect matching the light/whitish theme */
 .headline-glow {
-  color: #3b5284;
+  color: #ffffff;
   text-shadow:
-    0 0 25px rgba(59, 82, 132, 0.45),
-    0 0 50px rgba(56, 189, 248, 0.2),
-    0 0 75px rgba(0, 210, 255, 0.1);
+    0 0 25px rgba(255, 255, 255, 0.45),
+    0 0 50px rgba(56, 189, 248, 0.25),
+    0 0 80px rgba(56, 189, 248, 0.12);
   letter-spacing: -0.01em;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .headline-glow:hover {
-  color: #4b6584;
+  color: #ffffff;
   text-shadow:
-    0 0 35px rgba(59, 82, 132, 0.6),
-    0 0 65px rgba(56, 189, 248, 0.35),
-    0 0 95px rgba(0, 210, 255, 0.2);
+    0 0 35px rgba(255, 255, 255, 0.7),
+    0 0 65px rgba(56, 189, 248, 0.45),
+    0 0 95px rgba(56, 189, 248, 0.25);
 }
 
 /* Coordinate Grid background pattern with fine lines & major subdivisions */

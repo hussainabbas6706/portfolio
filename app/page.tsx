@@ -4,15 +4,15 @@ import React, { useEffect, useState } from "react";
 import Lenis from "lenis";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import AboutSection from "@/components/AboutSection";
+import ProjectsSection from "@/components/ProjectsSection";
+import ExplorationSection from "@/components/ExplorationSection";
+import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
-import InspectionTooltip from "@/components/InspectionTooltip";
-import TelemetryHUD from "@/components/TelemetryHUD";
-import type { LandmarkData } from "@/components/canvas/HeroCanvas";
+import BackgroundStars from "@/components/BackgroundStars";
 
 export default function Home() {
-  const [activeLandmark, setActiveLandmark] = useState<LandmarkData | null>(null);
-  const [cursorCoords, setCursorCoords] = useState({ x: 0, y: 0, z: 0 });
-  const [mousePos, setMousePos] = useState({ x: -999, y: -999 });
+  const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
     // Initialize smooth inertia scrolling
@@ -29,43 +29,56 @@ export default function Home() {
 
     const animId = requestAnimationFrame(raf);
 
-    // Track 2D screen cursor position for floating inspection tooltip
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+    // Track active section for navbar highlighting
+    const sections = ["hero", "about", "projects", "exploration", "contact"];
+    const handleScroll = () => {
+      const scrollY = window.scrollY + 200;
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollY >= top && scrollY < top + height) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
     };
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
       lenis.destroy();
     };
   }, []);
 
   return (
-    <main className="relative min-h-screen w-full bg-[#050811] overflow-hidden flex flex-col justify-between">
+    <main className="relative min-h-screen w-full bg-[#050811] overflow-x-hidden flex flex-col justify-between selection:bg-[#38BDF8]/20 selection:text-[#38BDF8]">
       {/* Background 2D Coordinate Grid Layer */}
-      <div className="absolute inset-0 bg-coordinate-grid opacity-70 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-coordinate-grid opacity-60 pointer-events-none z-0" />
 
       {/* Cosmic Radial Vignette Depth Layer */}
-      <div className="absolute inset-0 cosmic-vignette pointer-events-none z-0" />
+      <div className="fixed inset-0 cosmic-vignette pointer-events-none z-0" />
 
-      {/* Floating Holographic Inspection Tooltip */}
-      <InspectionTooltip activeLandmark={activeLandmark} mousePos={mousePos} />
-
-      {/* Mathematical Telemetry HUD */}
-      <TelemetryHUD cursorCoords={cursorCoords} />
+      {/* Lightweight 2D Starry Background */}
+      <BackgroundStars />
 
       {/* Top Navigation */}
-      <Navbar activeSection="hero" />
+      <Navbar activeSection={activeSection} />
 
-      {/* Hero Section with Framed ℝ³ COORDINATE SPACE Viewport */}
-      <HeroSection
-        onHoverLandmark={setActiveLandmark}
-        onCursorCoords={setCursorCoords}
-      />
+      {/* Sections Flow */}
+      <div className="relative z-10 flex flex-col w-full">
+        <HeroSection />
+        <AboutSection />
+        <ProjectsSection />
+        <ExplorationSection />
+        <ContactSection />
+      </div>
 
-      {/* Bottom Footer & Social Connections */}
+      {/* Bottom Footer */}
       <Footer />
     </main>
   );

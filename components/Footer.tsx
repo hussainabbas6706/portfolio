@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
 
-// Crisp SVG Icons for GitHub & LinkedIn
 function GithubIcon({ size = 18, className = "" }: { size?: number; className?: string }) {
   return (
     <svg
@@ -69,36 +68,43 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export default function Footer() {
-  return (
-    <motion.footer
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed bottom-0 left-0 right-0 z-40 flex flex-col items-center justify-center gap-2.5 pb-5 pt-3 pointer-events-none"
-    >
-      {/* Social Links Row */}
-      <div className="flex items-center gap-5 pointer-events-auto">
-        {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
-          <a
-            key={label}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            className="group relative p-2 text-[#94A3B8] transition-all duration-300 hover:text-[#FFFFFF] hover:scale-110"
-          >
-            <Icon size={18} />
-            <span className="absolute inset-0 -z-10 rounded-full bg-[#38BDF8]/0 blur-md transition-all duration-300 group-hover:bg-[#38BDF8]/20 group-hover:scale-125" />
-          </a>
-        ))}
-      </div>
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
 
-      {/* Copyright Notice */}
-      <div className="pointer-events-auto">
-        <p className="text-[11px] md:text-xs tracking-[0.06em] text-[#64748B] hover:text-[#94A3B8] transition-colors">
-          © 2024 Syed Muhammad Hussain Abbas
-        </p>
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
+  return (
+    <footer className="w-full relative z-20 border-t border-[#1E293B]/60 bg-[#050811]/90 backdrop-blur-md py-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Brand & Dynamic Copyright */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+          <span className="text-xs font-mono tracking-widest text-[#E2E8F0] font-semibold">
+            S.M.H.A.
+          </span>
+          <span className="hidden sm:inline text-[#64748B]">·</span>
+          <p className="text-[11px] md:text-xs tracking-[0.06em] text-[#64748B]">
+            © {currentYear} Syed Muhammad Hussain Abbas. All rights reserved.
+          </p>
+        </div>
+
+        {/* Social Links Row */}
+        <div className="flex items-center gap-5">
+          {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              className="group relative p-2 text-[#94A3B8] transition-all duration-300 hover:text-[#FFFFFF] hover:scale-110"
+            >
+              <Icon size={18} />
+              <span className="absolute inset-0 -z-10 rounded-full bg-[#38BDF8]/0 blur-md transition-all duration-300 group-hover:bg-[#38BDF8]/20 group-hover:scale-125" />
+            </a>
+          ))}
+        </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 }

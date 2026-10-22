@@ -2,43 +2,25 @@ import { ProjectSlot } from "@/types/portfolio";
 
 export const PROJECT_SLOTS: ProjectSlot[] = [
   {
-    id: "slot-01",
+    id: "safezone",
     index: "01",
-    title: "VECTOR SPACE VISUALIZER",
+    title: "SafeZone — WhatsApp-Based Emergency Triage Prototype",
     description:
-      "Interactive visualization of vectors, linear transformations, basis changes, and eigenspaces. Demonstrates core linear algebra concepts through real-time manipulation.",
-    tags: ["React", "Three.js", "Linear Algebra", "TypeScript"],
-    status: "in-progress",
+      "A WhatsApp-based emergency triage system connecting FastAPI with Supabase/PostgreSQL, Gemini API for in-app AI triage assistant, and WhatsApp Cloud API messaging workflows for real-time reporting.",
+    tags: ["React", "TypeScript", "FastAPI", "Supabase", "PostgreSQL", "Gemini API", "WhatsApp API"],
+    status: "live",
+    demoUrl: "https://safezone.fly.dev",
     githubUrl: "https://github.com/hussainabbas6706",
   },
   {
-    id: "slot-02",
+    id: "devex",
     index: "02",
-    title: "FASTAPI ML BACKEND & PIPELINE",
+    title: "DevEx — The Micro-SaaS Marketplace",
     description:
-      "High-performance REST API service for model inference, vector embeddings, and text processing using FastAPI and Python.",
-    tags: ["FastAPI", "Python", "Embeddings", "REST API"],
-    status: "in-progress",
-    githubUrl: "https://github.com/hussainabbas6706",
-  },
-  {
-    id: "slot-03",
-    index: "03",
-    title: "MERN STACK WEB APPLICATION",
-    description:
-      "Full-stack web application featuring React, Node.js, Express, and MongoDB with modern state management and clean UI architecture.",
-    tags: ["MongoDB", "Express", "React", "Node.js"],
-    status: "in-progress",
-    githubUrl: "https://github.com/hussainabbas6706",
-  },
-  {
-    id: "slot-04",
-    index: "04",
-    title: "LLM & RAG EXPERIMENTS",
-    description:
-      "Experimental sandbox for prompt engineering, vector embeddings retrieval, and document context augmentation pipelines.",
-    tags: ["Python", "LLMs", "Prompt Eng", "RAG"],
-    status: "upcoming",
-    githubUrl: "https://github.com/hussainabbas6706",
+      "A premium, high-performance marketplace engineered for the seamless exchange of Micro-SaaS projects. Beyond a simple listing site, DevEx implements sophisticated System Design principles and Data Structures to ensure a secure, scalable, and ultra-fast user experience.",
+    tags: ["React 18", "Node.js", "Express", "MongoDB", "Tailwind CSS", "Socket.io", "Data Structures"],
+    status: "live",
+    demoUrl: "https://devexpk.vercel.app",
+    githubUrl: "https://github.com/SalmanZulfiqarShaikh/DevEx",
   },
 ];

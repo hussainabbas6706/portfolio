@@ -2,12 +2,13 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { Sparkles, Clock } from "lucide-react";
 
 export default function ExplorationSection() {
   return (
     <section
       id="exploration"
-      className="relative min-h-screen w-full flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-20 py-24 sm:py-32 max-w-7xl w-full mx-auto"
+      className="relative min-h-[75vh] w-full flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-20 py-24 sm:py-32 max-w-7xl mx-auto z-10"
     >
       {/* Section Header */}
       <motion.div
@@ -22,52 +23,47 @@ export default function ExplorationSection() {
             03 / EXPLORATION
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#E2E8F0] mt-2">
-            Mathematical Playground
+            Exploration Lab
           </h2>
         </div>
         <p className="text-xs sm:text-sm font-sans text-[#94A3B8] max-w-md">
-          Small experiments built while learning.
+          Experimental prototypes, architecture tests, and technical deep-dives.
         </p>
       </motion.div>
 
-      {/* Clean Skeleton Playground Frame */}
+      {/* Clean Minimal Coming Soon Frame */}
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="cyber-viewport-frame rounded-xl p-8 sm:p-12 min-h-[380px] flex flex-col justify-between"
+        className="cyber-viewport-frame rounded-xl p-10 sm:p-16 min-h-[360px] flex flex-col items-center justify-center text-center bg-[#070C18]/80 border border-[#1E293B]"
       >
-        {/* Corner Brackets */}
         <div className="corner-bracket-tl" />
         <div className="corner-bracket-tr" />
         <div className="corner-bracket-bl" />
         <div className="corner-bracket-br" />
 
-        {/* Top Header */}
-        <div className="flex items-center justify-between text-xs font-mono text-[#64748B]">
-          <span className="text-[#38BDF8] font-semibold">PLAYGROUND SKELETON</span>
-          <span>EXP.03</span>
+        {/* Status Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#38BDF8]/10 border border-[#38BDF8]/30 text-[#38BDF8] text-xs font-mono tracking-widest uppercase mb-6">
+          <Clock size={13} className="text-[#38BDF8] animate-spin" style={{ animationDuration: "8s" }} />
+          <span>IN DEVELOPMENT</span>
         </div>
 
-        {/* Center Skeleton Content Placeholder */}
-        <div className="my-auto text-center py-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#38BDF8]/10 border border-[#38BDF8]/40 text-[#38BDF8] text-xs font-mono tracking-widest uppercase mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping" />
-            SKELETON IN PROGRESS
-          </div>
-          <h3 className="text-lg sm:text-xl font-sans font-bold text-[#E2E8F0] tracking-tight">
-            Vector Transformations & PCA Scatter Plot Space
-          </h3>
-          <p className="text-xs sm:text-sm text-[#94A3B8] max-w-lg mx-auto mt-2 leading-relaxed">
-            This modular slot is prepared for interactive linear algebra experiments, matrix transformations, and high-dimensional projections.
-          </p>
-        </div>
+        {/* Big Coming Soon Headline */}
+        <h3 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#E2E8F0] uppercase headline-glow">
+          COMING SOON
+        </h3>
 
-        {/* Bottom Status */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-[#64748B] pt-4 border-t border-[#1E293B]/60">
-          <span>PANEL 01: VECTOR TRANSFORM</span>
-          <span>PANEL 02: PCA PROJECTION</span>
+        {/* Subtext */}
+        <p className="text-xs sm:text-sm text-[#94A3B8] max-w-md mx-auto mt-4 leading-relaxed font-sans">
+          New interactive systems, technical case studies, and engineering explorations are currently being built. Check back soon!
+        </p>
+
+        {/* Minimal Corner Accents */}
+        <div className="mt-8 flex items-center gap-2 text-[11px] font-mono text-[#64748B]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]/60 animate-ping" />
+          <span>MODULE // LAB.NEXT</span>
         </div>
       </motion.div>
     </section>
