@@ -19,22 +19,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Syed Muhammad Hussain Abbas | Software Engineer & AI/ML",
+  title: "Syed Muhammad Hussain Abbas | Full Stack Developer & Software Engineer",
   description:
-    "Navigating high-dimensional spaces. Modeling cosmos with code. Seeking mathematical elegance in artificial intelligence.",
+    "Portfolio of Syed Muhammad Hussain Abbas — BSCS Undergraduate, Full Stack Developer, and Software Engineer building AI-ready production applications.",
   keywords: [
     "Syed Muhammad Hussain Abbas",
+    "Full Stack Developer",
     "Software Engineer",
-    "Machine Learning",
-    "Artificial Intelligence",
-    "Linear Algebra",
-    "Cosmic Grid Portfolio",
+    "AI-Ready Production Applications",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "FastAPI",
+    "Node.js",
   ],
   authors: [{ name: "Syed Muhammad Hussain Abbas" }],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
-    title: "Syed Muhammad Hussain Abbas | Software Engineer & AI/ML",
+    title: "Syed Muhammad Hussain Abbas | Full Stack Developer & Software Engineer",
     description:
-      "Navigating high-dimensional spaces. Modeling cosmos with code. Seeking mathematical elegance in artificial intelligence.",
+      "BSCS Undergraduate, Full Stack Developer, and Software Engineer building AI-ready production applications.",
     type: "website",
   },
 };
